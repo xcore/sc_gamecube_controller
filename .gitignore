@@ -1,0 +1,10 @@
+.metadata/
+.build/
+.build_Debug/
+.build_Release/
+.settings/
+.project
+.cproject
+.makefile
+.xproject
+.DS_Store
