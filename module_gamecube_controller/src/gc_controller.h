@@ -36,18 +36,26 @@ typedef struct gc_controller_state_t {
 /// Takes approximately 360us to complete.
 void gc_controller_poll(port p, gc_controller_state_t &state);
 
+interface gc_controller_tx {
+  void push(gc_controller_state_t data);
+};
+
+[[combinable]]
+void gc_controller_poller(port p, client interface gc_controller_tx tx,
+                          unsigned period);
+
 inline int
-gc_controller_get_button(gc_controller_state_t &state,
+gc_controller_get_button(const gc_controller_state_t &state,
                          enum gc_controller_button button) {
   return (state.data[button / 8] >> (button % 8)) & 1;
 }
 
 inline uint8_t
-gc_controller_get_axis(gc_controller_state_t &state,
+gc_controller_get_axis(const gc_controller_state_t &state,
                        enum gc_controller_axis axis) {
   return state.data[axis];
 }
 
-void gc_controller_print(gc_controller_state_t &state);
+void gc_controller_print(const gc_controller_state_t &state);
 
 #endif /* GC_CONTROLLER_H_ */

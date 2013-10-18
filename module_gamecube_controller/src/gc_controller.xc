@@ -10,10 +10,10 @@
 
 // Force external definitions of inline functions in this file.
 extern inline int
-gc_controller_get_button(gc_controller_state_t &state,
+gc_controller_get_button(const gc_controller_state_t &state,
                          enum gc_controller_button button);
 extern inline uint8_t
-gc_controller_get_axis(gc_controller_state_t &state,
+gc_controller_get_axis(const gc_controller_state_t &state,
                        enum gc_controller_axis axis);
 
 static const uint8_t poll_cmd[] =
@@ -81,7 +81,27 @@ void gc_controller_poll(port p, gc_controller_state_t &state)
   receive_end(p);
 }
 
-void gc_controller_print(gc_controller_state_t &state)
+[[combinable]]
+void gc_controller_poller(port p, client interface gc_controller_tx tx,
+                          unsigned period)
+{
+  timer t;
+  unsigned time;
+  t :> time;
+  time += period;
+  while (1) {
+    select {
+    case t when timerafter(time) :> void:
+      gc_controller_state_t state;
+      gc_controller_poll(p, state);
+      tx.push(state);
+      time += period;
+      break;
+    }
+  }
+}
+
+void gc_controller_print(const gc_controller_state_t &state)
 {
   printstr("JOYSTICK: ");
   printint(gc_controller_get_axis(state, GC_CONTROLLER_AXIS_X));

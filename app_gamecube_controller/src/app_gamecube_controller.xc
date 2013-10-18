@@ -3,7 +3,6 @@
 #include <xscope.h>
 #include "gc_controller.h"
 
-#define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 #define POLL_INTERVAL (XS1_TIMER_MHZ * 12 * 1000)
 
 port gc_controller_port = XS1_PORT_1C;
@@ -14,16 +13,24 @@ void xscope_user_init(void)
   xscope_config_io(XSCOPE_IO_BASIC);
 }
 
+[[distributable]]
+void print_state(server interface gc_controller_tx controller)
+{
+  while (1) {
+    select {
+    case controller.push(gc_controller_state_t state):
+      gc_controller_print(state);
+      break;
+    }
+  }
+}
+
 int main()
 {
-  timer t;
-  unsigned time;
-  t :> time;
-  while (1) {
-    gc_controller_state_t state;
-    gc_controller_poll(gc_controller_port, state);
-    gc_controller_print(state);
-    t when timerafter(time += POLL_INTERVAL) :> void;
+  interface gc_controller_tx controller;
+  par {
+    gc_controller_poller(gc_controller_port, controller, POLL_INTERVAL);
+    print_state(controller);
   }
   return 0;
 }
