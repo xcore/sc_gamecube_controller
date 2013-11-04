@@ -34,7 +34,8 @@ typedef struct gc_controller_state_t {
 /// Read the current state of the controller, storing the result in state.
 /// Port p should be a 1-bit port clocked of the reference clock.
 /// Takes approximately 360us to complete.
-void gc_controller_poll(port p, gc_controller_state_t &state);
+/// \return 1 on success, 0 on failure
+int gc_controller_poll(port p, gc_controller_state_t &state);
 
 interface gc_controller_tx {
   void push(gc_controller_state_t data);

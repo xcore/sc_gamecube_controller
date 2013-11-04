@@ -49,10 +49,19 @@ static void send_end(port p, unsigned short &time)
 
 static int receive_byte(port p)
 {
-  unsigned short t1, t2;
   uint8_t byte = 0;
   for (unsigned i = 0; i < 8; i++) {
-    p when pinseq(0) :> void @ t1;
+    unsigned short t1, t2;
+    timer t;
+    unsigned timeout;
+    t :> timeout;
+    timeout += SHORT_DELAY + LONG_DELAY;
+    select {
+    case t when timerafter(timeout) :> void:
+      return -1;
+    case p when pinseq(0) :> void @ t1:
+      break;
+    }
     p when pinseq(1) :> void @ t2;
     int bit = (t2 - t1) < THRESHOLD_DELAY;
     byte = (byte << 1) | bit;
@@ -62,11 +71,20 @@ static int receive_byte(port p)
 
 static void receive_end(port p)
 {
-  p when pinseq(0) :> void;
+  timer t;
+  unsigned timeout;
+  t :> timeout;
+  timeout += SHORT_DELAY + LONG_DELAY;
+  select {
+  case t when timerafter(timeout) :> void:
+    return;
+  case p when pinseq(0) :> void:
+    break;
+  }
   p when pinseq(1) :> void;
 }
 
-void gc_controller_poll(port p, gc_controller_state_t &state)
+int gc_controller_poll(port p, gc_controller_state_t &state)
 {
   unsigned short time;
   p :> void @ time;
@@ -76,9 +94,13 @@ void gc_controller_poll(port p, gc_controller_state_t &state)
   }
   send_end(p, time);
   for (unsigned i = 0; i < ARRAY_SIZE(state.data); i++) {
-    state.data[i] = receive_byte(p);
+    int byte = receive_byte(p);
+    if (byte < 0)
+      return 0;
+    state.data[i] = byte;
   }
   receive_end(p);
+  return 1;
 }
 
 [[combinable]]
@@ -93,8 +115,9 @@ void gc_controller_poller(port p, client interface gc_controller_tx tx,
     select {
     case t when timerafter(time) :> void:
       gc_controller_state_t state;
-      gc_controller_poll(p, state);
-      tx.push(state);
+      if (gc_controller_poll(p, state)) {
+        tx.push(state);
+      }
       time += period;
       break;
     }
