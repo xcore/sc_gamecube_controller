@@ -158,4 +158,5 @@ void gc_controller_print(const gc_controller_state_t &state)
   PRINT_BUTTON(Z);
   PRINT_BUTTON(R);
   PRINT_BUTTON(L);
+#undef PRINT_BUTTON
 }

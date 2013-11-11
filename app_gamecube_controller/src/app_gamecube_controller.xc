@@ -1,3 +1,11 @@
+/**
+ * \file
+ * \brief Example of how interface with a gamecube controller.
+ *
+ * This application periodically polls the state of the connected controller,
+ * printing the values of the buttons and the axes on stdout.
+ */
+
 #include <xs1.h>
 #include <stdio.h>
 #include <xscope.h>
