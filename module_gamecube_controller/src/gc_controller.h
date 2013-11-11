@@ -45,7 +45,7 @@ enum gc_controller_axis {
   GC_CONTROLLER_AXIS_CX = 4, /**< C-stick horizontal axis. */
   GC_CONTROLLER_AXIS_CY = 5, /**< C-stick vertical axis. */
   GC_CONTROLLER_AXIS_L = 6, /**< Left shoulder trigger. */
-  GC_CONTROLLER_AXIS_R = 7 /**< Left shoulder trigger. */
+  GC_CONTROLLER_AXIS_R = 7 /**< Right shoulder trigger. */
 };
 
 /**
